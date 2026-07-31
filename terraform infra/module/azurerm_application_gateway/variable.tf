@@ -1,0 +1,45 @@
+variable "app_gateway" {
+  type = map(object({
+    name                                   = string
+    location                               = string
+    resource_group_name                    = string
+    sku_name                               = string
+    sku_tier                               = string
+    capacity                               = number
+    subnet_name                            = string
+    virtual_network_name                   = string
+    public_ip_name                         = string
+    gateway_ip_configuration_name          = string
+    frontend_port_name                     = string
+    frontend_port                          = number
+    https_frontend_port_name               = optional(string, "https-port")
+    https_frontend_port                    = optional(number, 443)
+    frontend_ip_configuration_name         = string
+    ssl_certificate_name                   = optional(string)
+    ssl_certificate_data                   = optional(string)
+    ssl_certificate_password               = optional(string)
+    key_vault_secret_id                    = optional(string)
+    linux_nic_name                         = string
+    backend_nic_name                       = string
+    linux_backend_pool_name                = string
+    backend_backend_pool_name              = string
+    linux_backend_http_settings_name       = string
+    backend_backend_http_settings_name     = string
+    cookie_based_affinity                  = string
+    linux_backend_http_settings_port       = number
+    backend_backend_http_settings_port     = number
+    linux_backend_http_settings_protocol   = string
+    backend_backend_http_settings_protocol = string
+    request_timeout                        = number
+    linux_listener_name                    = string
+    backend_listener_name                  = string
+    http_listener_protocol                 = string
+    linux_host_name                        = string
+    backend_host_name                      = string
+    linux_rule_name                        = string
+    backend_rule_name                      = string
+    rule_type                              = string
+    linux_rule_priority                    = number
+    backend_rule_priority                  = number
+  }))
+}
