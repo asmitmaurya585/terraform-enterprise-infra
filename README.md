@@ -4,144 +4,113 @@ Production-ready Azure Infrastructure using **Terraform** with reusable modules 
 
 ---
 
-## 📌 Overview
+# Terraform Azure Infrastructure
 
-This project automates the provisioning of Microsoft Azure infrastructure using **Infrastructure as Code (IaC)**.
+## Overview
 
-The repository is organized using reusable Terraform modules to simplify infrastructure deployment across multiple environments while following DevOps best practices.
+This project provisions enterprise-grade Microsoft Azure infrastructure using Terraform with a modular Infrastructure as Code (IaC) approach.
 
----
+The repository is organized into reusable Terraform modules and environment-specific configurations for development, pre-production, and production deployments.
 
-## ✨ Features
+## Features
 
-- Reusable Terraform Modules
-- Multi-Environment Deployment
-- Infrastructure as Code (IaC)
-- Modular Project Structure
-- Azure Networking
-- Production Ready
-- Easy to Scale
+* Modular Terraform architecture
+* Environment-based deployment (Dev, PreProd, Prod)
+* Azure Resource Groups
+* Virtual Networks (VNet)
+* Subnets
+* Network Security Groups (NSG)
+* Public IP Addresses
+* NAT Gateway
+* Linux Virtual Machines
+* Azure Application Gateway
+* Azure Monitor
+* Azure Database for MySQL
+* Remote Terraform State Support
+* Reusable Modules
 
----
+## Project Structure
 
-## 🛠 Azure Resources
-
-- Resource Group
-- Virtual Network (VNet)
-- Subnet
-- Network Security Group (NSG)
-- Public IP
-- Linux Virtual Machine
-- NAT Gateway
-- Bastion
-- Application Gateway
-- Storage Account
-
----
-
-## 📂 Project Structure
-
-```
-Environment/
+```text
+terraform-azure-enterprise-infra/
 │
-├── dev/
-├── preprod/
-└── prod/
-
-module/
-├── azurerm_resource_group/
-├── azurerm_virtual_network/
-├── azurerm_subnet/
-├── azurerm_public_ip/
-├── azurerm_nsg/
-├── azurerm_nat_gateway/
-├── azurerm_bastion/
-├── azurerm_linux_virtual_machine/
-├── azurerm_storage_account/
-└── azurerm_application_gateway/
+├── modules/
+│   ├── resource_group/
+│   ├── virtual_network/
+│   ├── subnet/
+│   ├── network_security_group/
+│   ├── public_ip/
+│   ├── nat_gateway/
+│   ├── linux_virtual_machine/
+│   ├── application_gateway/
+│   ├── monitor/
+│   └── mysql/
+│
+├── environments/
+│   ├── dev/
+│   ├── preprod/
+│   └── prod/
+│
+├── README.md
+└── .gitignore
 ```
 
----
+## Prerequisites
 
-## ⚙️ Prerequisites
+* Terraform v1.5+
+* Azure CLI
+* Azure Subscription
+* Git
 
-- Terraform >= 1.6
-- Azure CLI
-- Azure Subscription
+## Deployment
 
----
-
-## 🚀 Deployment
-
-### Initialize
+Initialize Terraform:
 
 ```bash
 terraform init
 ```
 
-### Validate
+Validate configuration:
 
 ```bash
 terraform validate
 ```
 
-### Plan
+Preview infrastructure changes:
 
 ```bash
 terraform plan
 ```
 
-### Apply
+Deploy infrastructure:
 
 ```bash
 terraform apply
 ```
 
----
+Destroy infrastructure:
 
-## 🏗 Terraform Modules
+```bash
+terraform destroy
+```
 
-| Module | Purpose |
-|---------|----------|
-| Resource Group | Creates Resource Groups |
-| Virtual Network | Creates VNets |
-| Subnet | Creates Subnets |
-| NSG | Network Security Rules |
-| Public IP | Creates Public IP |
-| Linux VM | Deploys Linux Virtual Machine |
-| Bastion | Secure VM Access |
-| NAT Gateway | Outbound Internet Access |
-| Application Gateway | Layer 7 Load Balancer |
-| Storage Account | Azure Storage |
+## Security
 
----
+* Sensitive files are excluded using `.gitignore`
+* Terraform state should be stored remotely
+* Secrets should never be committed to Git
 
-## 🔧 Technologies
+## Technologies
 
-- Terraform
-- Microsoft Azure
-- Azure CLI
-- Infrastructure as Code (IaC)
-- Linux
+* Terraform
+* Microsoft Azure
+* Azure CLI
+* Git
+* Infrastructure as Code (IaC)
 
----
+## Author
 
-## 📖 Future Enhancements
-
-- Azure Kubernetes Service (AKS)
-- Azure Monitor
-- Log Analytics
-- Key Vault
-- Azure Firewall
-- Private Endpoints
-
----
-
-## 👨‍💻 Author
-
-**Asmit Kumar Maurya**
-
-Azure DevOps Engineer
+**Asmit Maurya**
 
 - LinkedIn: https://linkedin.com/in/asmit-maurya
 - GitHub: https://github.com/asmitmaurya585
