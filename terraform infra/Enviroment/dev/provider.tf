@@ -6,12 +6,7 @@ terraform {
       version = "4.81.0"
     }
   }
-  backend "azurerm" {
-    resource_group_name  = "rgamit"
-    storage_account_name = "asmitstorage"
-    container_name       = "asmitcon"
-    key                  = "dev.terraform.tfstate"
-  }
+  
 }
 
 provider "azurerm" {
