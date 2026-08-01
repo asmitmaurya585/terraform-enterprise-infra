@@ -75,10 +75,10 @@ stages:
               terraform init
             displayName: 'Terraform Init'
             env:
-               ARM_CLIENT_ID: e88f7e5f-8de0-47ad-a54b-d95ca58170bd
-              ARM_CLIENT_SECRET: a3ce5080-3e42-4eb3-939f-3c2e76d9607a
-              ARM_SUBSCRIPTION_ID: 0183c8b5-5d3f-4b6c-8d7f-134936695325
-              ARM_TENANT_ID: 22b1c883-8dc2-44e2-b91a-ada4f3c49850
+              ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(AZURE_TENANT_ID)
 
           - script: |
               cd "$(environmentDir)"
@@ -91,10 +91,10 @@ stages:
             displayName: 'Terraform Plan'
             condition: eq('${{ parameters.action }}', 'plan')
             env:
-              ARM_CLIENT_ID: e88f7e5f-8de0-47ad-a54b-d95ca58170bd
-              ARM_CLIENT_SECRET: a3ce5080-3e42-4eb3-939f-3c2e76d9607a
-              ARM_SUBSCRIPTION_ID: 0183c8b5-5d3f-4b6c-8d7f-134936695325
-              ARM_TENANT_ID: 22b1c883-8dc2-44e2-b91a-ada4f3c49850
+              ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(AZURE_TENANT_ID)
 
           - script: |
               cd "$(environmentDir)"
@@ -102,10 +102,10 @@ stages:
             displayName: 'Terraform Apply'
             condition: eq('${{ parameters.action }}', 'apply')
             env:
-              ARM_CLIENT_ID: e88f7e5f-8de0-47ad-a54b-d95ca58170bd
-              ARM_CLIENT_SECRET: a3ce5080-3e42-4eb3-939f-3c2e76d9607a
-              ARM_SUBSCRIPTION_ID: 0183c8b5-5d3f-4b6c-8d7f-134936695325
-              ARM_TENANT_ID: 22b1c883-8dc2-44e2-b91a-ada4f3c49850
+              ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(AZURE_TENANT_ID)
 
           - script: |
               cd "$(environmentDir)"
@@ -113,7 +113,7 @@ stages:
             displayName: 'Terraform Destroy'
             condition: eq('${{ parameters.action }}', 'destroy')
             env:
-               ARM_CLIENT_ID: e88f7e5f-8de0-47ad-a54b-d95ca58170bd
-              ARM_CLIENT_SECRET: a3ce5080-3e42-4eb3-939f-3c2e76d9607a
-              ARM_SUBSCRIPTION_ID: 0183c8b5-5d3f-4b6c-8d7f-134936695325
-              ARM_TENANT_ID: 22b1c883-8dc2-44e2-b91a-ada4f3c49850
+              ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(AZURE_TENANT_ID)
