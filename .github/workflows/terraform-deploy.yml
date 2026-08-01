@@ -1,0 +1,131 @@
+name: "Terraform Azure CI/CD Pipeline"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'terraform infra/**'
+      - '.github/workflows/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'terraform infra/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Select Target Environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - preprod
+          - prod
+      action:
+        description: 'Terraform Action'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  terraform-ci:
+    name: "Terraform CI (Format & Validate)"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.5.0"
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+        working-directory: './terraform infra'
+
+  terraform-cd:
+    name: "Terraform CD (${{ github.event.inputs.environment || 'dev' }} - ${{ github.event.inputs.action || (github.event_name == 'push' && 'apply' || 'plan') }})"
+    needs: terraform-ci
+    runs-on: ubuntu-latest
+
+    env:
+      ARM_USE_OIDC: true
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ENV_DIR: "terraform infra/Enviroment/${{ github.event.inputs.environment || 'dev' }}"
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.5.0"
+
+      - name: Azure Login (OIDC Passwordless)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        continue-on-error: true
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ${{ env.ENV_DIR }}
+
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: ${{ env.ENV_DIR }}
+
+      - name: Terraform Plan
+        id: plan
+        if: ${{ github.event.inputs.action == 'plan' || github.event_name == 'pull_request' || (github.event_name == 'push' && github.event.inputs.action == '') }}
+        run: terraform plan -no-color -out=tfplan
+        working-directory: ${{ env.ENV_DIR }}
+
+      - name: Publish Plan to PR
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            const fs = require('fs');
+            const output = `#### Terraform Format and Style 🖌\`success\`
+            #### Terraform Initialization ⚙️\`success\`
+            #### Terraform Validation 🤖\`success\`
+            #### Terraform Plan 📖\`success\`
+
+            *Pushed by: @${{ github.actor }}*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      - name: Terraform Apply
+        if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main' && github.event.inputs.action == '') || github.event.inputs.action == 'apply' }}
+        run: terraform apply -auto-approve tfplan || terraform apply -auto-approve
+        working-directory: ${{ env.ENV_DIR }}
+
+      - name: Terraform Destroy
+        if: ${{ github.event.inputs.action == 'destroy' }}
+        run: terraform destroy -auto-approve
+        working-directory: ${{ env.ENV_DIR }}

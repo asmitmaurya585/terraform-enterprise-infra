@@ -107,6 +107,24 @@ terraform destroy
 * Azure CLI
 * Git
 * Infrastructure as Code (IaC)
+* GitHub Actions CI/CD Pipeline
+
+## 🔄 CI/CD Pipeline (GitHub Actions)
+
+This project includes an automated GitHub Actions pipeline located at `.github/workflows/terraform-deploy.yml`.
+
+### Required GitHub Secrets:
+Set up the following secrets in your GitHub Repository under **Settings > Secrets and variables > Actions**:
+
+* `AZURE_CLIENT_ID`: Azure Service Principal Application ID
+* `AZURE_CLIENT_SECRET`: Azure Service Principal Secret
+* `AZURE_SUBSCRIPTION_ID`: Azure Subscription ID
+* `AZURE_TENANT_ID`: Azure Tenant ID
+
+### Workflow Triggers:
+1. **Pull Request**: Automatically triggers `terraform fmt`, `init`, `validate`, and `plan`.
+2. **Push to `main`**: Automatically runs `terraform apply` for the `dev` environment.
+3. **Manual Trigger (`workflow_dispatch`)**: Select environment (`dev`, `preprod`, `prod`) and action (`plan`, `apply`, `destroy`).
 
 ## Author
 
