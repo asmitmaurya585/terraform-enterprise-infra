@@ -35,3 +35,11 @@ resource "azurerm_key_vault" "kv" {
     ]
   }
 }
+
+resource "azurerm_key_vault_secret" "secret" {
+  for_each     = var.key_vault_secrets
+  name         = each.value.name
+  value        = each.value.value
+  key_vault_id = azurerm_key_vault.kv[each.value.key_vault_key].id
+}
+

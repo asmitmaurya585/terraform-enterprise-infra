@@ -48,10 +48,12 @@ module "nsg" {
 }
 
 module "key_vault" {
-  depends_on = [module.resource_group]
-  source     = "../../module/azurerm_key_vault"
-  key_vault  = var.key_vault
+  depends_on        = [module.resource_group]
+  source            = "../../module/azurerm_key_vault"
+  key_vault         = var.key_vault
+  key_vault_secrets = var.key_vault_secrets
 }
+
 
 module "log_analytics_workspace" {
   depends_on              = [module.resource_group]
