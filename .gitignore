@@ -36,3 +36,7 @@ Thumbs.db
 # Backup files
 *.bak
 *.tmp
+# GitHub Actions Runner
+actions-runner/
+_work/
+_diag/
