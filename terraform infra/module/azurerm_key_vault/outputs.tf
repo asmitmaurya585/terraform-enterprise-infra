@@ -7,3 +7,10 @@ output "key_vault_uris" {
   value       = { for k, v in azurerm_key_vault.kv : k => v.vault_uri }
   description = "Map of Key Vault URIs"
 }
+
+output "key_vault_secret_ids" {
+  value       = { for k, v in azurerm_key_vault_secret.secret : k => v.id }
+  description = "Map of Key Vault Secret IDs"
+  sensitive   = true
+}
+

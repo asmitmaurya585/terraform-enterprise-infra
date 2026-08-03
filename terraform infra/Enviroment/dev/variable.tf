@@ -115,6 +115,17 @@ variable "key_vault" {
   description = "Map of Key Vaults configuration"
 }
 
+variable "key_vault_secrets" {
+  type = map(object({
+    name          = string
+    value         = string
+    key_vault_key = string
+  }))
+  default     = {}
+  description = "Map of Key Vault secrets configuration"
+}
+
+
 variable "log_analytics_workspace" {
   type = map(object({
     name                = string

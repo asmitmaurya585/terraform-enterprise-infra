@@ -12,3 +12,14 @@ variable "key_vault" {
     network_acls_subnet_ids     = optional(list(string), [])
   }))
 }
+
+variable "key_vault_secrets" {
+  type = map(object({
+    name          = string
+    value         = string
+    key_vault_key = string
+  }))
+  default     = {}
+  description = "Map of secrets to store in Key Vault"
+}
+
