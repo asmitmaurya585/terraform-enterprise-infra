@@ -7,26 +7,29 @@ on:
     paths:
       - 'terraform infra/**'
       - '.github/workflows/**'
+
   pull_request:
     branches:
       - main
     paths:
       - 'terraform infra/**'
+
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Select Target Environment'
+        description: "Select Environment"
         required: true
-        default: 'dev'
+        default: dev
         type: choice
         options:
           - dev
           - preprod
           - prod
+
       action:
-        description: 'Terraform Action to perform'
+        description: "Terraform Action"
         required: true
-        default: 'plan'
+        default: plan
         type: choice
         options:
           - plan
@@ -34,133 +37,84 @@ on:
           - destroy
 
 permissions:
-  id-token: write
   contents: read
   pull-requests: write
 
-# Prevent concurrent state lock conflicts per environment
 concurrency:
   group: terraform-${{ github.event.inputs.environment || 'dev' }}
   cancel-in-progress: false
 
 jobs:
-  # ==========================================
-  # CI JOB: Code Formatting & Validation
-  # ==========================================
+
   terraform-ci:
-    name: "🔍 Terraform CI (Format & Validate)"
+    name: "Terraform CI"
     runs-on: self-hosted
+
     defaults:
       run:
         shell: bash
 
     steps:
-      - name: 🔧 Enable Git LongPaths
-        run: git config --global core.longpaths true
-
-      - name: 📥 Checkout Repository
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: ⚙️ Setup Terraform
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.5.0"
 
-      - name: 🎨 Terraform Format Check
+      - name: Terraform Format
         run: terraform fmt -check -recursive "./terraform infra"
 
-  # ==========================================
-  # CD JOB: Plan / Apply / Destroy
-  # ==========================================
   terraform-cd:
-    name: "🚀 Terraform CD [Env: ${{ github.event.inputs.environment || 'dev' }} | Action: ${{ github.event.inputs.action || (github.event_name == 'push' && 'apply' || 'plan') }}]"
+
+    name: "Terraform CD"
+
     needs: terraform-ci
+
     runs-on: self-hosted
+
     defaults:
       run:
         shell: bash
 
     env:
-      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      ARM_USE_OIDC: ${{ secrets.AZURE_CLIENT_SECRET == '' && secrets.AZURE_CLIENT_ID != '' && 'true' || 'false' }}
-      ARM_USE_AZUREAD: "true"
+      ARM_USE_CLI: true
       ENV_DIR: "terraform infra/Enviroment/${{ github.event.inputs.environment || 'dev' }}"
 
     steps:
-      - name: 🔧 Enable Git LongPaths
-        run: git config --global core.longpaths true
 
-      - name: 📥 Checkout Repository
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: ⚙️ Setup Terraform
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.5.0"
 
-      - name: 🔐 Azure Login via Service Principal (Client Secret)
-        uses: azure/login@v2
-        if: ${{ secrets.AZURE_CLIENT_SECRET != '' && secrets.AZURE_CLIENT_ID != '' }}
-        with:
-          creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
-
-      - name: 🔐 Azure Login via OIDC (Passwordless)
-        uses: azure/login@v2
-        if: ${{ secrets.AZURE_CLIENT_SECRET == '' && secrets.AZURE_CLIENT_ID != '' }}
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: 🛠️ Terraform Init
-        run: terraform init -no-color
-        working-directory: ${{ env.ENV_DIR }}
-
-      - name: 🧪 Terraform Validate
-        run: terraform validate -no-color
-        working-directory: ${{ env.ENV_DIR }}
-
-      - name: 📊 Terraform Plan
-        id: plan
-        if: ${{ github.event.inputs.action == 'plan' || github.event_name == 'pull_request' || (github.event_name == 'push' && (github.event.inputs.action == '' || github.event.inputs.action == 'plan')) }}
-        run: terraform plan -no-color -out=tfplan
-        working-directory: ${{ env.ENV_DIR }}
-
-      - name: 💬 Publish Plan Summary to PR
-        uses: actions/github-script@v7
-        if: github.event_name == 'pull_request'
-        with:
-          script: |
-            const env = "${{ github.event.inputs.environment || 'dev' }}";
-            const actor = "${{ github.actor }}";
-            const commentBody = `### 🚀 Terraform Plan Summary
-            - **Environment**: \`${env}\`
-            - **Triggered By**: @${actor}
-            - **Status**: ✅ Plan Generated Successfully
-
-            *Execution completed on self-hosted runner.*`;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: commentBody
-            });
-
-      - name: 🚀 Terraform Apply
-        if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main' && github.event.inputs.action == '') || github.event.inputs.action == 'apply' }}
+      - name: Verify Azure Login
         run: |
-          if [ -f tfplan ]; then
-            terraform apply -no-color -auto-approve tfplan
-          else
-            terraform apply -no-color -auto-approve
-          fi
-        working-directory: ${{ env.ENV_DIR }}
+          az account show
 
-      - name: 💥 Terraform Destroy
-        if: ${{ github.event.inputs.action == 'destroy' }}
-        run: terraform destroy -no-color -auto-approve
-        working-directory: ${{ env.ENV_DIR }}
+      - name: Terraform Init
+        working-directory: "${{ env.ENV_DIR }}"
+        run: terraform init -no-color
+
+      - name: Terraform Validate
+        working-directory: "${{ env.ENV_DIR }}"
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        if: github.event.inputs.action == 'plan' || github.event_name == 'pull_request'
+        working-directory: "${{ env.ENV_DIR }}"
+        run: terraform plan -out=tfplan -no-color
+
+      - name: Terraform Apply
+        if: github.event.inputs.action == 'apply'
+        working-directory: "${{ env.ENV_DIR }}"
+        run: terraform apply -auto-approve tfplan
+
+      - name: Terraform Destroy
+        if: github.event.inputs.action == 'destroy'
+        working-directory: "${{ env.ENV_DIR }}"
+        run: terraform destroy -auto-approve
