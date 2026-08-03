@@ -93,8 +93,9 @@ jobs:
           terraform_version: "1.5.0"
 
       - name: Verify Azure Login
-        run: |
-          az account show
+  run: |
+    az account show
+    az account list -o table
 
       - name: Terraform Init
         working-directory: "${{ env.ENV_DIR }}"
@@ -105,14 +106,19 @@ jobs:
         run: terraform validate -no-color
 
       - name: Terraform Plan
-        if: github.event.inputs.action == 'plan' || github.event_name == 'pull_request'
+       if: github.event.inputs.action == 'plan' || github.event_name == 'pull_request' || github.event_name == 'push'
         working-directory: "${{ env.ENV_DIR }}"
         run: terraform plan -out=tfplan -no-color
 
       - name: Terraform Apply
-        if: github.event.inputs.action == 'apply'
-        working-directory: "${{ env.ENV_DIR }}"
-        run: terraform apply -auto-approve tfplan
+  if: github.event.inputs.action == 'apply' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+  working-directory: "${{ env.ENV_DIR }}"
+  run: |
+    if [ -f tfplan ]; then
+      terraform apply -auto-approve tfplan
+    else
+      terraform apply -auto-approve
+    fi
 
       - name: Terraform Destroy
         if: github.event.inputs.action == 'destroy'
