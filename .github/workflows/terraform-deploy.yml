@@ -55,9 +55,9 @@ jobs:
 
     runs-on: self-hosted
 
-    defaults:
-      run:
-        shell: pwsh
+     defaults:
+  run:
+    shell: powershell
 
 
     steps:
@@ -91,8 +91,8 @@ jobs:
 
 
     defaults:
-      run:
-        shell: pwsh
+  run:
+    shell: powershell
 
 
     env:
