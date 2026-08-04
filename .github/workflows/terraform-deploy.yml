@@ -93,8 +93,15 @@ jobs:
 
       - name: Terraform Init
         working-directory: "${{ env.ENV_DIR }}"
+        env:
+          TF_LOG: DEBUG   # इससे हमें पता चलेगा कि यह बैकग्राउंड में क्या कर रहा है
         run: |
-          terraform init -reconfigure -input=false -no-color
+          # पुरानी कैशे को जबरदस्ती डिलीट करें
+          if (Test-Path .terraform) { Remove-Item -Recurse -Force .terraform }
+          if (Test-Path .terraform.lock.hcl) { Remove-Item -Force .terraform.lock.hcl }
+          
+          # नया इनिशियलाइज़ेशन करें
+          terraform init -input=false -no-color
 
       - name: Terraform Validate
         working-directory: "${{ env.ENV_DIR }}"
