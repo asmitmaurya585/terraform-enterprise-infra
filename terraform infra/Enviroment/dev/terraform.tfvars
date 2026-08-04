@@ -330,6 +330,15 @@ key_vault = {
   }
 }
 
+key_vault_secrets = {
+  secret1 = {
+    name          = "db-password"
+    value         = "SuperSecretPassword123!"
+    key_vault_key = "kv1"
+  }
+}
+
+
 log_analytics_workspace = {
   law1 = {
     name                = "dev-law-b18"
