@@ -46,8 +46,9 @@ concurrency:
 
 jobs:
   terraform-ci:
-    name: "Terraform CI"
+    name: Terraform CI
     runs-on: self-hosted
+
     defaults:
       run:
         shell: powershell
@@ -59,23 +60,24 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "1.5.0"
+          terraform_version: "1.14.6"
 
       - name: Terraform Format Check
         run: |
           terraform fmt -check -recursive "terraform infra"
 
   terraform-cd:
-    name: "Terraform CD"
+    name: Terraform CD
     needs: terraform-ci
     runs-on: self-hosted
+
     defaults:
       run:
         shell: powershell
-    
+
     env:
       ARM_USE_CLI: true
-      ENV_DIR: "terraform infra/Enviroment/${{ github.event.inputs.environment || 'dev' }}"
+      ENV_DIR: terraform infra/Enviroment/${{ github.event.inputs.environment || 'dev' }}
 
     steps:
       - name: Checkout Code
@@ -84,7 +86,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "1.5.0"
+          terraform_version: "1.14.6"
 
       - name: Verify Azure Login
         run: |
@@ -92,33 +94,43 @@ jobs:
           az account list -o table
 
       - name: Terraform Version
-  run: terraform version
-      - name: Terraform Init
-        working-directory: "${{ env.ENV_DIR }}"
-        env:
-          TF_LOG: DEBUG   # इससे हमें पता चलेगा कि यह बैकग्राउंड में क्या कर रहा है
+        run: terraform version
+
+      - name: Verify Working Directory
+        working-directory: ${{ env.ENV_DIR }}
         run: |
-          # पुरानी कैशे को जबरदस्ती डिलीट करें
-          if (Test-Path .terraform) { Remove-Item -Recurse -Force .terraform }
-          if (Test-Path .terraform.lock.hcl) { Remove-Item -Force .terraform.lock.hcl }
-          
-          # नया इनिशियलाइज़ेशन करें
+          Write-Host "Current Directory:"
+          Get-Location
+
+          Write-Host "Files:"
+          Get-ChildItem
+
+      - name: Terraform Init
+        working-directory: ${{ env.ENV_DIR }}
+        run: |
+          if (Test-Path .terraform) {
+            Remove-Item -Recurse -Force .terraform
+          }
+
+          if (Test-Path .terraform.lock.hcl) {
+            Remove-Item -Force .terraform.lock.hcl
+          }
+
           terraform init -input=false -no-color
 
       - name: Terraform Validate
-        working-directory: "${{ env.ENV_DIR }}"
-        run: |
-          terraform validate -no-color
+        working-directory: ${{ env.ENV_DIR }}
+        run: terraform validate -no-color
 
       - name: Terraform Plan
         if: github.event.inputs.action == 'plan' || github.event_name == 'pull_request' || github.event_name == 'push'
-        working-directory: "${{ env.ENV_DIR }}"
+        working-directory: ${{ env.ENV_DIR }}
         run: |
           terraform plan -out=tfplan -no-color
 
       - name: Terraform Apply
         if: github.event.inputs.action == 'apply' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
-        working-directory: "${{ env.ENV_DIR }}"
+        working-directory: ${{ env.ENV_DIR }}
         run: |
           if (Test-Path tfplan) {
             terraform apply -auto-approve tfplan
@@ -129,6 +141,6 @@ jobs:
 
       - name: Terraform Destroy
         if: github.event.inputs.action == 'destroy'
-        working-directory: "${{ env.ENV_DIR }}"
+        working-directory: ${{ env.ENV_DIR }}
         run: |
           terraform destroy -auto-approve
