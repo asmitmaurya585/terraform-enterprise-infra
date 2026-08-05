@@ -91,6 +91,8 @@ jobs:
           az account show
           az account list -o table
 
+      - name: Terraform Version
+  run: terraform version
       - name: Terraform Init
         working-directory: "${{ env.ENV_DIR }}"
         env:
