@@ -61,10 +61,12 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.5.0"
+          terraform_wrapper: false
 
       - name: Terraform Format Check
+        working-directory: "terraform infra"
         run: |
-          terraform fmt -check -recursive "terraform infra"
+          terraform fmt -check -recursive
 
   terraform-cd:
     name: Terraform Execution (${{ inputs.environment || 'dev' }})
@@ -88,6 +90,7 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.5.0"
+          terraform_wrapper: false
 
       - name: Azure Login
         uses: azure/login@v2
