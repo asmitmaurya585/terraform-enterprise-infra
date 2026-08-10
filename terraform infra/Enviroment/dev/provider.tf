@@ -7,13 +7,7 @@ terraform {
     }
   }
 
-  backend "azurerm" {
-    resource_group_name  = "rgamit"
-    storage_account_name = "asmitstorage"
-    container_name       = "asmitcon"
-    key                  = "dev.terraform.tfstate"
-    use_azuread_auth     = true
-  }
+  
 }
 
 provider "azurerm" {
