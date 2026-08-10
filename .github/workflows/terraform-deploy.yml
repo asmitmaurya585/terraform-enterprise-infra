@@ -41,7 +41,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: terraform-${{ github.event.inputs.environment || 'dev' }}
+  group: terraform-${{ inputs.environment || 'dev' }}
   cancel-in-progress: false
 
 jobs:
@@ -60,7 +60,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "1.14.6"
+          terraform_version: "1.5.0"
 
       - name: Terraform Format Check
         run: |
@@ -77,7 +77,7 @@ jobs:
 
     env:
       ARM_USE_CLI: true
-      ENV_DIR: "terraform infra/Enviroment/${{ github.event.inputs.environment || 'dev' }}"
+      ENV_DIR: "terraform infra/Enviroment/${{ inputs.environment || 'dev' }}"
 
     steps:
       - name: Checkout code
@@ -86,7 +86,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "1.14.6"
+          terraform_version: "1.5.0"
 
       - name: Azure Login
         uses: azure/login@v2
@@ -118,13 +118,13 @@ jobs:
         run: terraform validate -no-color
 
       - name: Terraform Plan
-        if: github.event.inputs.action == 'plan' || github.event_name == 'pull_request' || github.event_name == 'push'
+        if: inputs.action == 'plan' || github.event_name == 'pull_request' || github.event_name == 'push'
         working-directory: ${{ env.ENV_DIR }}
         run: |
           terraform plan -out=tfplan -no-color
 
       - name: Terraform Apply
-        if: github.event.inputs.action == 'apply' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        if: inputs.action == 'apply' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
         working-directory: ${{ env.ENV_DIR }}
         run: |
           if (Test-Path tfplan) {
@@ -135,7 +135,7 @@ jobs:
           }
 
       - name: Terraform Destroy
-        if: github.event.inputs.action == 'destroy'
+        if: inputs.action == 'destroy'
         working-directory: ${{ env.ENV_DIR }}
         run: |
           terraform destroy -auto-approve
