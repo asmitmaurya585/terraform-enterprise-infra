@@ -9,9 +9,9 @@ terraform {
 
 backend "azurerm" {
     resource_group_name  = "rgamit"
-    storage_account_name = "asmitstorage"
+    storage_account_name = "asmitstgpreprod2026"
     container_name       = "asmitcon"
-    key                  = "preprod.terraform.tfstate"
+    key                  = "dev.terraform.tfstate"
     use_azuread_auth     = true
   }
 }
