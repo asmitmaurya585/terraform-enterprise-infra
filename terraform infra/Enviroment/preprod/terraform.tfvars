@@ -1,15 +1,15 @@
 asmitrg = {
   rg1 = {
     name     = "rgamit"
-    location = "central india"
+    location = "centralindia"
   }
 }
 
 asmitstg = {
   stg1 = {
-    stg_name                 = "asmitstorage"
+    stg_name                 = "asmitstgpreprod99"
     resource_group_name      = "rgamit"
-    location                 = "central india"
+    location                 = "centralindia"
     account_tier             = "Standard"
     account_replication_type = "LRS"
     con_name                 = "asmitcon"

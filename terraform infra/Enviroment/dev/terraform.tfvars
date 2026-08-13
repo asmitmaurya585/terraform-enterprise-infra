@@ -132,7 +132,7 @@ asmitvm = {
     vm_name                         = "frontend-dev"
     location                        = "centralindia"
     resource_group_name             = "devrg"
-    vm_size                         = "Standard_DC1s_v3"
+    vm_size                         = "Standard_B1ms"
     admin_username                  = "frontend-dev"
     admin_password                  = "asmit@123456"
     publisher                       = "Canonical"
@@ -156,7 +156,7 @@ asmitvm = {
     vm_name                         = "backend-dev"
     location                        = "centralindia"
     resource_group_name             = "devrg"
-    vm_size                         = "Standard_DC1s_v3"
+    vm_size                         = "Standard_B1ms"
     admin_username                  = "backend-dev"
     admin_password                  = "asmit@123456"
     publisher                       = "Canonical"
@@ -325,7 +325,7 @@ key_vault = {
     purge_protection_enabled    = true
     enabled_for_disk_encryption = true
     network_acls_default_action = "Allow"
-    network_acls_ip_rules       = []
+    network_acls_ip_rules       = ["122.161.73.126"]
     network_acls_subnet_ids     = []
   }
 }
