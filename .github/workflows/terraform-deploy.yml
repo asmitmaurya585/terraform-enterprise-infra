@@ -45,32 +45,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  terraform-ci:
-    name: Terraform CI (Format & Validate)
-    runs-on: self-hosted
-
-    defaults:
-      run:
-        shell: powershell
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: "1.5.0"
-          terraform_wrapper: false
-
-      - name: Terraform Format Check
-        working-directory: "terraform infra"
-        run: |
-          terraform fmt -check -recursive
-
-  terraform-cd:
-    name: Terraform Execution (${{ inputs.environment || 'dev' }})
-    needs: terraform-ci
+  terraform-execution:
+    name: "Terraform Execution (${{ inputs.environment || 'dev' }})"
     runs-on: self-hosted
     environment: ${{ inputs.environment || 'dev' }}
 
@@ -83,7 +59,7 @@ jobs:
       ENV_DIR: "terraform infra/Enviroment/${{ inputs.environment || 'dev' }}"
 
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Terraform
@@ -122,24 +98,16 @@ jobs:
         run: terraform validate -no-color
 
       - name: Terraform Plan
-        if: inputs.action == 'plan' || github.event_name == 'pull_request' || github.event_name == 'push'
         working-directory: ${{ env.ENV_DIR }}
         run: |
           terraform plan -out=tfplan -no-color
 
       - name: Terraform Apply
-        if: inputs.action == 'apply'
+        if: inputs.action == 'apply' || github.event_name == 'push'
         working-directory: ${{ env.ENV_DIR }}
         run: |
           if (Test-Path tfplan) {
             terraform apply -auto-approve tfplan
-          }
-          else {
+          } else {
             terraform apply -auto-approve
           }
-
-      - name: Terraform Destroy
-        if: inputs.action == 'destroy'
-        working-directory: ${{ env.ENV_DIR }}
-        run: |
-          terraform destroy -auto-approve
