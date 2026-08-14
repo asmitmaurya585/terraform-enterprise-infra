@@ -1,7 +1,6 @@
 name: $(Date:yyyyMMdd)$(Rev:.r)
 
 trigger:
-<<<<<<< HEAD
   branches:
     include:
       - main
@@ -16,50 +15,31 @@ pr:
   paths:
     include:
       - 'terraform infra/**'
-=======
-branches:
-include:
-- main
-paths:
-include:
-- 'terraform infra/*'
-
-pr:
-branches:
-include:
-- main
-paths:
-include:
-- 'terraform infra/*'
->>>>>>> origin/main
 
 parameters:
-
-* name: environment
-  type: string
-  default: dev
-  values:
-
-  * dev
-  * preprod
-  * prod
-
-* name: action
-  type: string
-  default: plan
-  values:
-
-  * plan
-  * apply
-  * destroy
+  - name: environment
+    displayName: 'Target Environment'
+    type: string
+    default: 'dev'
+    values:
+      - dev
+      - preprod
+      - prod
+  - name: action
+    displayName: 'Terraform Action'
+    type: string
+    default: 'plan'
+    values:
+      - plan
+      - apply
+      - destroy
 
 variables:
-
-* name: environmentDir
-  value: 'terraform infra/Enviroment/${{ parameters.environment }}'
+  - group: Azure-Terraform-Secrets # Variable group containing AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, etc.
+  - name: environmentDir
+    value: 'terraform infra/Enviroment/${{ parameters.environment }}'
 
 stages:
-<<<<<<< HEAD
   - stage: Validate
     displayName: 'Terraform Code Validation'
     jobs:
@@ -79,7 +59,7 @@ stages:
             displayName: 'Terraform Format Check'
 
   - stage: TerraformExecution
-    displayName: 'Terraform Execution (${{ parameters.environment }} - ${{ parameters.action }})'
+    displayName: 'Terraform Execution'
     dependsOn: Validate
     jobs:
       - job: TerraformJob
@@ -90,20 +70,23 @@ stages:
             displayName: 'Install Terraform'
             inputs:
               terraformVersion: '1.5.0'
-=======
 
-* stage: Validate
-  jobs:
->>>>>>> origin/main
+          - script: |
+              cd "$(environmentDir)"
+              terraform init
+            displayName: 'Terraform Init'
+            env:
+              ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(AZURE_TENANT_ID)
+              ARM_USE_AZUREAD: 'true'
 
-  * job: Validate
-    pool:
-    name: self-hosted-pool
-    steps:
+          - script: |
+              cd "$(environmentDir)"
+              terraform validate
+            displayName: 'Terraform Validate'
 
-    * checkout: self
-
-<<<<<<< HEAD
           - script: |
               cd "$(environmentDir)"
               terraform plan -out=tfplan
@@ -139,60 +122,3 @@ stages:
               ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
               ARM_TENANT_ID: $(AZURE_TENANT_ID)
               ARM_USE_AZUREAD: 'true'
-=======
-    * script: terraform version
-      displayName: Terraform Version
-
-    * script: |
-      cd "terraform infra"
-      terraform fmt -check -recursive
-      displayName: Terraform Format
-
-* stage: TerraformExecution
-  dependsOn: Validate
-  jobs:
-
-  * job: TerraformJob
-    pool:
-    name: self-hosted-pool
-    steps:
-
-    * checkout: self
-
-    * task: AzureCLI@2
-      displayName: Azure Login
-      inputs:
-      azureSubscription: 'azure-service-connection'
-      scriptType: ps
-      scriptLocation: inlineScript
-      inlineScript: |
-      az account show
-
-    * script: |
-      cd "$(environmentDir)"
-      terraform init
-      displayName: Terraform Init
-
-    * script: |
-      cd "$(environmentDir)"
-      terraform validate
-      displayName: Terraform Validate
-
-    * script: |
-      cd "$(environmentDir)"
-      terraform plan -out=tfplan
-      displayName: Terraform Plan
-      condition: eq('${{ parameters.action }}', 'plan')
-
-    * script: |
-      cd "$(environmentDir)"
-      terraform apply -auto-approve tfplan
-      displayName: Terraform Apply
-      condition: eq('${{ parameters.action }}', 'apply')
-
-    * script: |
-      cd "$(environmentDir)"
-      terraform destroy -auto-approve
-      displayName: Terraform Destroy
-      condition: eq('${{ parameters.action }}', 'destroy')
->>>>>>> origin/main
