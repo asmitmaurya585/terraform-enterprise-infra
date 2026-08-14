@@ -1,4 +1,4 @@
-name: Terraform Azure Pipeline
+name: $(Date:yyyyMMdd)$(Rev:.r)
 
 trigger:
   branches:
@@ -6,7 +6,7 @@ trigger:
       - main
   paths:
     include:
-      - 'terraform infra/*'
+      - 'terraform infra/**'
 
 pr:
   branches:
@@ -14,7 +14,7 @@ pr:
       - main
   paths:
     include:
-      - 'terraform infra/*'
+      - 'terraform infra/**'
 
 parameters:
   - name: environment
@@ -48,10 +48,11 @@ stages:
         pool:
           vmImage: 'ubuntu-latest'
         steps:
-          - task: HashiCorpInstaller@1
+          - task: TerraformInstaller@1
+            displayName: 'Install Terraform'
             inputs:
-              executable: 'terraform'
-              version: '1.5.0'
+              terraformVersion: '1.5.0'
+
           - script: |
               cd "terraform infra"
               terraform fmt -check -recursive
@@ -65,10 +66,10 @@ stages:
         pool:
           vmImage: 'ubuntu-latest'
         steps:
-          - task: HashiCorpInstaller@1
+          - task: TerraformInstaller@1
+            displayName: 'Install Terraform'
             inputs:
-              executable: 'terraform'
-              version: '1.5.0'
+              terraformVersion: '1.5.0'
 
           - script: |
               cd "$(environmentDir)"
@@ -90,7 +91,7 @@ stages:
               cd "$(environmentDir)"
               terraform plan -out=tfplan
             displayName: 'Terraform Plan'
-            condition: eq('${{ parameters.action }}', 'plan')
+            condition: and(succeeded(), eq('${{ parameters.action }}', 'plan'))
             env:
               ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
               ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
@@ -102,7 +103,7 @@ stages:
               cd "$(environmentDir)"
               terraform apply -auto-approve
             displayName: 'Terraform Apply'
-            condition: eq('${{ parameters.action }}', 'apply')
+            condition: and(succeeded(), eq('${{ parameters.action }}', 'apply'))
             env:
               ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
               ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
@@ -114,7 +115,7 @@ stages:
               cd "$(environmentDir)"
               terraform destroy -auto-approve
             displayName: 'Terraform Destroy'
-            condition: eq('${{ parameters.action }}', 'destroy')
+            condition: and(succeeded(), eq('${{ parameters.action }}', 'destroy'))
             env:
               ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
               ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
