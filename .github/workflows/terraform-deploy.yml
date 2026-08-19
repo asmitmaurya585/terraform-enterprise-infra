@@ -35,9 +35,10 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # ==========================================
-  # JOB 1: Preprod Environment (Runs First)
-  # ==========================================
+
+  # ==================================================
+  # JOB 1: PREPROD
+  # ==================================================
   preprod-execution:
     name: "Preprod Execution"
     runs-on: self-hosted
@@ -55,6 +56,7 @@ jobs:
       ENV_DIR: "terraform infra/Enviroment/preprod"
 
     steps:
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -64,50 +66,47 @@ jobs:
           terraform_version: "1.5.0"
           terraform_wrapper: false
 
-      
-
-      
-
+      # IMPORTANT:
+      # Do NOT delete .terraform or .terraform.lock.hcl
       - name: Terraform Init
         working-directory: ${{ env.ENV_DIR }}
         run: |
-          if (Test-Path .terraform) {
-            Remove-Item -Recurse -Force .terraform
-          }
-          if (Test-Path .terraform.lock.hcl) {
-            Remove-Item -Force .terraform.lock.hcl
-          }
           terraform init -input=false -no-color
 
       - name: Terraform Validate
         working-directory: ${{ env.ENV_DIR }}
-        run: terraform validate -no-color
+        run: |
+          terraform validate -no-color
 
       - name: Terraform Plan
         working-directory: ${{ env.ENV_DIR }}
         run: |
           terraform plan -out=tfplan -no-color
 
-      - name: Terraform Action (Apply/Destroy)
-        if: inputs.action == 'apply' || inputs.action == 'destroy' || github.event_name == 'push'
+      # Apply only on push to main or manual apply
+      - name: Terraform Apply
+        if: >
+          github.event_name == 'push' ||
+          inputs.action == 'apply'
         working-directory: ${{ env.ENV_DIR }}
         run: |
-          if ("${{ inputs.action }}" -eq "destroy") {
-            terraform destroy -auto-approve
-          } else {
-            if (Test-Path tfplan) {
-              terraform apply -auto-approve tfplan
-            } else {
-              terraform apply -auto-approve
-            }
-          }
+          terraform apply -auto-approve tfplan
 
-  # ==========================================
-  # JOB 2: Dev Environment (Runs After Preprod)
-  # ==========================================
+      # Destroy only when manually selected
+      - name: Terraform Destroy
+        if: inputs.action == 'destroy'
+        working-directory: ${{ env.ENV_DIR }}
+        run: |
+          terraform destroy -auto-approve
+
+
+  # ==================================================
+  # JOB 2: DEV
+  # ==================================================
   dev-execution:
     name: "Dev Execution"
     needs: preprod-execution
+
     runs-on: self-hosted
     environment: dev
 
@@ -123,6 +122,7 @@ jobs:
       ENV_DIR: "terraform infra/Enviroment/dev"
 
     steps:
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -132,38 +132,35 @@ jobs:
           terraform_version: "1.5.0"
           terraform_wrapper: false
 
-      
-
+      # IMPORTANT:
+      # Do NOT delete .terraform or .terraform.lock.hcl
       - name: Terraform Init
         working-directory: ${{ env.ENV_DIR }}
         run: |
-          if (Test-Path .terraform) {
-            Remove-Item -Recurse -Force .terraform
-          }
-          if (Test-Path .terraform.lock.hcl) {
-            Remove-Item -Force .terraform.lock.hcl
-          }
           terraform init -input=false -no-color
 
       - name: Terraform Validate
         working-directory: ${{ env.ENV_DIR }}
-        run: terraform validate -no-color
+        run: |
+          terraform validate -no-color
 
       - name: Terraform Plan
         working-directory: ${{ env.ENV_DIR }}
         run: |
           terraform plan -out=tfplan -no-color
 
-      - name: Terraform Action (Apply/Destroy)
-        if: inputs.action == 'apply' || inputs.action == 'destroy' || github.event_name == 'push'
+      # Apply only on push to main or manual apply
+      - name: Terraform Apply
+        if: >
+          github.event_name == 'push' ||
+          inputs.action == 'apply'
         working-directory: ${{ env.ENV_DIR }}
         run: |
-          if ("${{ inputs.action }}" -eq "destroy") {
-            terraform destroy -auto-approve
-          } else {
-            if (Test-Path tfplan) {
-              terraform apply -auto-approve tfplan
-            } else {
-              terraform apply -auto-approve
-            }
-          }
+          terraform apply -auto-approve tfplan
+
+      # Destroy only when manually selected
+      - name: Terraform Destroy
+        if: inputs.action == 'destroy'
+        working-directory: ${{ env.ENV_DIR }}
+        run: |
+          terraform destroy -auto-approve
